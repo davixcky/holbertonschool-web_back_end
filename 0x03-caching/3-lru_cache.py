@@ -32,6 +32,10 @@ class LRUCache(BaseCaching):
         if not key or not value:
             return
 
+        if self.cache_data.get(key):
+            self._add_element(key, value)
+            return
+
         keys = list(self.cache_data.keys())
         if len(keys) == BaseCaching.MAX_ITEMS:
             """
@@ -54,4 +58,11 @@ class LRUCache(BaseCaching):
         if not key:
             return None
 
+        el = self.cache_data.get(key)
+        if not el:
+            return None
+
+        # Reorder the keys level so the usage will be taken in count
+        self.keys_orders.remove(key)
+        self.keys_orders.append(key)
         return self.cache_data.get(key)
