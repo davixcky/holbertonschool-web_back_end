@@ -43,7 +43,6 @@ class LRUCache(BaseCaching):
             remove_key = self.keys_orders[0]
             self.keys_orders.pop(0)
             print('DISCARD: {}'.format(remove_key))
-            del self.cache_data[remove_key]
             self._add_element(key, value)
             return
 
