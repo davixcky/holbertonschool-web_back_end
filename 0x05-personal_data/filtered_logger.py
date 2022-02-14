@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Regex-ing"""
 import re
 from typing import List
