@@ -2,16 +2,43 @@
 """
 Route module for the API
 """
+from logging import exception
 from os import getenv
 from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
 from flask_cors import (CORS, cross_origin)
+from api.v1.auth.auth import Auth
+from api.v1.auth.basic_auth import BasicAuth
 import os
 
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
+auth = None
+
+
+if getenv("AUTH_TYPE") == "auth":
+    auth = Auth()
+elif getenv("AUTH_TYPE") == "basic_auth":
+    auth = BasicAuth()
+
+
+@app.before_request
+def authentication_handler() -> None:
+    """Auth handler
+
+    Returns:
+        [type]: creates an instance of auth
+    """
+    exceptions = ['/api/v1/status/',
+                  '/api/v1/unauthorized/', '/api/v1/forbidden/']
+    if not auth or not auth.require_auth(request.path, exceptions):
+        return None
+    if not auth.authorization_header(request):
+        abort(401)
+    if not auth.current_user(request):
+        abort(403)
 
 
 @app.errorhandler(404)
@@ -31,7 +58,7 @@ def unauthorized(error) -> str:
 @app.errorhandler(403)
 def forbidden(error) -> str:
     """ Forbidden Handker """
-    return jsonify({"error": "Forbidden"})
+    return jsonify({"error": "Forbidden"}), 403
 
 
 if __name__ == "__main__":
